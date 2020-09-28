@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import obeliks
+import argparse
+import sys
+
+
+parser = argparse.ArgumentParser(description='Sentence splitting & tokenization.')
+
+parser.add_argument('-if', dest='input_file', metavar='<name>', nargs='+', help='Read input from one or more files')
+parser.add_argument('-sif', help='Read input from list of files, specified via stdin', action='store_true')
+parser.add_argument('-o', metavar='<name>', help='Write output to file <name>')
+parser.add_argument('-tei', help='Produce XML-TEI output', action='store_true')
+parser.add_argument('-c', help='Produce CoNLL-U output', action='store_true')
+parser.add_argument('-d', help='Pass "newdoc id" to output (implies -c)', action='store_true')
+
+args = parser.parse_args()
+
+in_files = []
+if args.sif:
+    in_files += sys.stdin.read().split()
+if args.input_file:
+    in_files += args.input_file
+
+out_file = args.o
+
+if args.tei:
+    obeliks.run(in_files=in_files, out_file=out_file, tei=True)
+elif args.d:
+    obeliks.run(in_files=in_files, out_file=out_file, conllu=True, pass_newdoc_id=True)
+elif args.c:
+    obeliks.run(in_files=in_files, out_file=out_file, conllu=True, pass_newdoc_id=False)
+else:
+    obeliks.run(in_files=in_files, out_file=out_file, conllu=False, pass_newdoc_id=False)
+
