@@ -1,4 +1,4 @@
-#Obeliks - sentence splitting & tokenization
+# Obeliks - sentence splitting & tokenization
 
 ## Instalation
 
