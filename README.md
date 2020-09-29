@@ -16,10 +16,10 @@ obeliks -h
 
 Command line parameters:
 ```
--if <name*>	read input from one or more files
--sif		read input from list of files, specified via stdin
--o <name>	write output to file <name>
--tei		produce XML-TEI output
+-if <name*> read input from one or more files
+-sif        read input from list of files, specified via stdin
+-o <name>   write output to file <name>
+-tei        produce XML-TEI output
 -c		    produce CoNLL-U output
 -d		    pass "newdoc id" to output (implies -c)
 ```
