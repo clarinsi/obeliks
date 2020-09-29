@@ -1,6 +1,7 @@
 import sys
 import regex as re
 import lxml.etree as ET
+from io import StringIO
 
 from . rules import tokenize
 
@@ -238,9 +239,30 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
             process_tokenize_only(line, np, os)
 
 
-def run(text=None, in_file=None, in_files=None, out_file=None, tei=False, conllu=False, pass_newdoc_id=False):
-    os = sys.stdout
-    if out_file is not None:
+def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, tei=False, conllu=False, pass_newdoc_id=False):
+    """
+    Run Obeliks on specified input.
+
+    Reads input from 'text' parameter, or from files passed via 'in_file' or 'in_files'. If none of these three 
+    parameters are supplied, input is read from stdin. The output gets written to the path specified inside
+    'out_file' or to stdout if 'to_stdout' is True. If 'out_file' is None and 'to_stdout is False, return output
+    as a string.
+
+    Args:
+        text: A string containing input text.
+        in_file: Path to file with input text.
+        in_files: List of files with input text.
+        out_file: Path where the output gets written to.
+        to_stdout: Write output to stdout. Has priority over 'out_file'.
+        tei: Output in XML-TEI format.
+        conllu: Output in CoNLL-U format.
+        pass_newdoc_id: Pass lines starting with \"# newdoc id =\" to output. Only applies if CoNLL-U output is 
+                        selected.
+    """
+    os = StringIO()
+    if to_stdout:
+        os = sys.stdout
+    elif out_file is not None:
         os = open(out_file, 'w', encoding = 'utf-8')
 
     if in_files and len(in_files) > 0:
@@ -259,10 +281,20 @@ def run(text=None, in_file=None, in_files=None, out_file=None, tei=False, conllu
     if tei:
         tei_tree = create_tei_tree()
         process_text(text, os, tei_tree.getroot(), False, False)
-        tei_tree.write(os.buffer, encoding='utf-8', xml_declaration=True, pretty_print=True)
+        if isinstance(os, StringIO):
+            return ET.tostring(tei_tree, encoding='utf8', method='xml')
+        else:
+            tei_tree.write(os.buffer, encoding='utf-8', xml_declaration=True, pretty_print=True)
     else:
         process_text(text, os, None, conllu, pass_newdoc_id)
+    
+    if isinstance(os, StringIO):
+        contents = os.getvalue()
+        os.close()
+        return contents
 
     if os is not sys.stdout:
         os.close()
+
+    return None
 

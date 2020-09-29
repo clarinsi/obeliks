@@ -151,7 +151,7 @@ def exec_rules(text, rules):
                 if has_val:
                     return rhs.replace('$val', match.group(0))
                 if has_txt:
-                    return rhs.replace('$txt', re.sub(tag_regex, '', match))
+                    return rhs.replace('$txt', re.sub(tag_regex, '', match.group(0)))
             text = re.sub(regex, repl_func, text) 
 
     return text
