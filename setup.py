@@ -9,5 +9,6 @@ setup(name='obeliks',
       url='https://www.github.com/clarinsi/obeliks',
       packages=['obeliks'],
       scripts=['obeliks/obeliks'],
+      install_requires=['lxml', 'regex'],
       package_data={'obeliks': ['res/*.txt']}
      )
