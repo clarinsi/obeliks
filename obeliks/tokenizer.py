@@ -108,6 +108,8 @@ def process_conllu(para, np, os):
     if para.startswith(u"\uFEFF"):
         para = para[1:]
 
+    para_concat = ''.join(para)
+
     tokens = tokenize(para)
 
     os.write('# newpar id = {}\n'.format(np))
@@ -143,7 +145,7 @@ def process_conllu(para, np, os):
             idx_of_token += 1
             nt += 1
             line = str(nt) + '\t{}\t_\t_\t_\t_\t_\t_\t_'.format(actual_val[0])
-            if idx < len(para) and not ''.join(para)[idx].isspace():
+            if idx < len(para) and (not para_concat[idx].isspace() or para_concat[idx] == '\xa0'):
                 space_after = 'SpaceAfter=No'
             else:
                 space_after = '_'

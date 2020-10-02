@@ -5,8 +5,8 @@ from pathlib import Path
 tag_regex = re.compile(r'\</?[^>]+\>')
 abbrv_regex = re.compile(r'<w>(\p{L}+)<\/w><c>\\.<\/c>')
 endofsentence_regex = re.compile(r'^<[wc]>[\p{Lu}"»“‘\'0-9]$')
-abbrvexcl_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\\.<\/c>(?P<tail><S\/>)?)(?P<ctx>(<\/[ps]>)|(<[wc]>.))')
-abbrvother_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\\.<\/c>(?P<tail><S\/>)?)<[wc]>[:,;0-9\p{Ll}]')
+abbrvexcl_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\.<\/c>(?P<tail><S\/>)?)(?P<ctx>(<\/[ps]>)|(<[wc]>.))')
+abbrvother_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\.<\/c>(?P<tail><S\/>)?)<[wc]>[:,;0-9\p{Ll}]')
 
 def load_list(path):
     tokens = set()
