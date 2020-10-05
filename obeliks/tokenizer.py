@@ -227,6 +227,9 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
         if line.isspace() or line == '':
             continue
 
+        # Normalize exotic characters
+        line = normalize(line)
+
         if conllu:
             if pass_newdoc_id and line.startswith('# newdoc id = '):
                 np = 0
@@ -240,6 +243,10 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
         else:
             np += 1
             process_tokenize_only(line, np, os)
+
+def normalize(text):
+    text = text.replace('\xad', '-')   # Soft hyphens
+    return text
 
 
 def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, tei=False, conllu=False, pass_newdoc_id=False):
