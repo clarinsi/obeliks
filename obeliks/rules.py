@@ -51,30 +51,25 @@ def process_abbrv_seq(text, seq_len):
             + str(seq_len - 1) + r'})(?P<ctx>(</[ps]>)|(<[wc]>.))')
 
     sb = []
-    fin = False
-    while not fin:
-        fin = True
-        for m in re.finditer(regex, text):
-            if m.pos < idx:
-                continue
-            elif m.pos > idx:
-                break
-            fin = False
-            sb.append(text[idx : m.start()])
-            xml = empty_if_none(m.group('jump'))
-            abbrv_lower = re.sub(tag_regex, '', xml).sub(' ', '').lower()
-            if abbrv_lower in abbrv_seq:
-                idx = m.start() + len(xml)
-                xml = re.sub(abbrv_regex, '<w>$1.</w>', xml)
-                if endofsentence_regex.search(empty_if_none(m.group('ctx'))):
-                    if abbrv_lower in abbrv_seg_seq:
-                        xml += '</s><s>'
-                    elif abbrv_lower in abbrv_no_seg_seq:
-                        xml += '<!s/>'
-            else:
-                xml = empty_if_none(m.group('step'))
-                idx = m.start() + len(xml)
-            sb.append(xml)
+    while True:
+        m = regex.search(text, idx)
+        if not m:
+            break
+        sb.append(text[idx : m.start()])
+        xml = empty_if_none(m.group('jump'))
+        abbrv_lower = re.sub(tag_regex, '', xml).sub(' ', '').lower()
+        if abbrv_lower in abbrv_seq:
+            idx = m.start() + len(xml)
+            xml = re.sub(abbrv_regex, '<w>$1.</w>', xml)
+            if endofsentence_regex.search(empty_if_none(m.group('ctx'))):
+                if abbrv_lower in abbrv_seg_seq:
+                    xml += '</s><s>'
+                elif abbrv_lower in abbrv_no_seg_seq:
+                    xml += '<!s/>'
+        else:
+            xml = empty_if_none(m.group('step'))
+            idx = m.start() + len(xml)
+        sb.append(xml)
 
     sb.append(text[idx:])
     return ''.join(sb)
@@ -83,27 +78,22 @@ def process_abbrv_seq(text, seq_len):
 def process_abbrv_excl(text):
     idx = 0
     sb = []
-    fin = False
-    while not fin:
-        fin = True
-        for m in re.finditer(abbrvexcl_regex, text):
-            if m.pos < idx:
-                continue
-            elif m.pos > idx:
-                break
-            fin = False
-            sb.append(text[idx : m.start()])
-            word = empty_if_none(m.group('word'))
-            word_lower = word.lower()
-            if len(word) == 1 or word_lower in abbrv_excl or word in abbrv_excl_CS:
-                xml = '<w>' + word + '.</w>' + empty_if_none(m.group('tail'))
-                idx = m.start() + len(empty_if_none(m.group('step')))
-                if word_lower in abbrv_seg and endofsentence_regex.search(empty_if_none(m.group('ctx'))):
-                    xml += '</s><s>'
-            else:
-                xml = empty_if_none(m.group('step'))
-                idx = m.start() + len(xml)
-            sb.append(xml)
+    while True:
+        m = abbrvexcl_regex.search(text, idx)
+        if not m:
+            break
+        sb.append(text[idx : m.start()])
+        word = empty_if_none(m.group('word'))
+        word_lower = word.lower()
+        if len(word) == 1 or word_lower in abbrv_excl or word in abbrv_excl_CS:
+            xml = '<w>' + word + '.</w>' + empty_if_none(m.group('tail'))
+            idx = m.start() + len(empty_if_none(m.group('step')))
+            if word_lower in abbrv_seg and endofsentence_regex.search(empty_if_none(m.group('ctx'))):
+                xml += '</s><s>'
+        else:
+            xml = empty_if_none(m.group('step'))
+            idx = m.start() + len(xml)
+        sb.append(xml)
 
     sb.append(text[idx:])
     return ''.join(sb)
@@ -112,25 +102,20 @@ def process_abbrv_excl(text):
 def process_abbrv_other(text):
     idx = 0
     sb = []
-    fin = False
-    while not fin:
-        fin = True
-        for m in re.finditer(abbrvother_regex, text):
-            if m.pos < idx:
-                continue
-            elif m.pos > idx:
-                break
-            fin = False
-            sb.append(text[idx : m.start()])
-            word = empty_if_none(m.group('word'))
-            word_lower = word.lower()
-            if word_lower in abbrv_all or word in abbrv_all_CS:
-                xml = '<w>' + word + '.</w>' + empty_if_none(m.group('tail'))
-                idx = m.start() + len(empty_if_none(m.group('step')))
-            else:
-                xml = empty_if_none(m.group('step'))
-                idx = m.start() + len(xml)
-            sb.append(xml)
+    while True:
+        m = abbrvother_regex.search(text, idx)
+        if not m:
+            break
+        sb.append(text[idx : m.start()])
+        word = empty_if_none(m.group('word'))
+        word_lower = word.lower()
+        if word_lower in abbrv_all or word in abbrv_all_CS:
+            xml = '<w>' + word + '.</w>' + empty_if_none(m.group('tail'))
+            idx = m.start() + len(empty_if_none(m.group('step')))
+        else:
+            xml = empty_if_none(m.group('step'))
+            idx = m.start() + len(xml)
+        sb.append(xml)
    
     sb.append(text[idx:])
     return ''.join(sb)

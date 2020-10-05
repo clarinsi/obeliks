@@ -57,6 +57,7 @@ def preprocess_tokens(tokens):
         val = val.replace('</c>', '')
         val = val.replace('<S/>', ' ')
         val = val.replace(' {2,}', ' ')
+        val = re.sub(' +', ' ', val)
         org_text.append(val.strip())
 
     return org_text
@@ -145,7 +146,7 @@ def process_conllu(para, np, os):
             idx_of_token += 1
             nt += 1
             line = str(nt) + '\t{}\t_\t_\t_\t_\t_\t_\t_'.format(actual_val[0])
-            if idx < len(para) and (not para_concat[idx].isspace() or para_concat[idx] == '\xa0'):
+            if idx < len(para) and not para_concat[idx].isspace():
                 space_after = 'SpaceAfter=No'
             else:
                 space_after = '_'
