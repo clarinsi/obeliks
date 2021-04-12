@@ -10,7 +10,7 @@ abbrvother_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\.<\/c>(?P<t
 
 def load_list(path):
     tokens = set()
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         for token in f:
             token = token.strip()
             if not token == '' and not token.startswith('#'):
@@ -146,7 +146,7 @@ def load_rules(path):
     rules = []
     split_regex = re.compile(r'^(?P<regex>.*)((--)|(==))\>(?P<rhs>.*)$')
 
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
             if not line.startswith('#') and len(line) > 0:

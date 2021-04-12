@@ -273,15 +273,15 @@ def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, 
     if to_stdout:
         os = sys.stdout
     elif out_file is not None:
-        os = open(out_file, 'w', encoding = 'utf-8')
+        os = open(out_file, 'w', encoding='utf-8')
 
     if in_files and len(in_files) > 0:
         text = []
         for file_name in in_files:
-            with open(file_name) as f:
+            with open(file_name, encoding='utf-8') as f:
                 text += f.readlines()
     elif in_file is not None:
-        with open(in_file) as f:
+        with open(in_file, encoding='utf-8') as f:
             text = f.readlines()
     elif text:
         text = text.splitlines()
