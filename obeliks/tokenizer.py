@@ -43,6 +43,10 @@ def index_of(string, substring, from_idx, val):
     return string.find(substring, from_idx)
 
 
+def unescape_xml_chars(input_str):
+    return input_str.replace('&amp;', '&').replace('&lt;', '<').replace('&gt;', '>')
+
+
 def preprocess_tokens(tokens):
     stoken_regex = re.compile(r'<s>.*?</s>')
 
@@ -131,7 +135,7 @@ def process_conllu(para, np, os):
                 os.write('\n')
                 old_ns = ns
             os.write('# sent_id = {}.{}\n'.format(np, ns))
-            os.write('# text = {}\n'.format(org_text[ns - 1]))
+            os.write('# text = {}\n'.format(unescape_xml_chars(org_text[ns - 1])))
         elif val == '</s>':
             ns += 1
         elif val == '<S/>':
