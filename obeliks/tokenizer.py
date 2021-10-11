@@ -230,6 +230,7 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
     for line in text:
         if line.isspace() or line == '':
             continue
+        line = line.replace('\n', '')
 
         # Normalize exotic characters
         line = normalize(line)

@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 tag_regex = re.compile(r'\</?[^>]+\>')
-abbrv_regex = re.compile(r'<w>(\p{L}+)<\/w><c>\\.<\/c>')
+abbrv_regex = re.compile(r'<w>(\p{L}+)<\/w><c>\.<\/c>')
 endofsentence_regex = re.compile(r'^<[wc]>[\p{Lu}"»“‘\'0-9]$')
 abbrvexcl_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\.<\/c>(?P<tail><S\/>)?)(?P<ctx>(<\/[ps]>)|(<[wc]>.))')
 abbrvother_regex = re.compile(r'(?P<step><w>(?P<word>\p{L}+)<\/w><c>\.<\/c>(?P<tail><S\/>)?)<[wc]>[:,;0-9\p{Ll}]')
@@ -28,13 +28,14 @@ abbrv_seg = load_list(res_path / 'ListOSeg.txt')
 abbrv_all = load_list(res_path / 'ListOAll.txt')
 abbrv_all_CS = load_list(res_path / 'ListOAllCS.txt')
 
-abbrv_seq_len = []
+abbrv_seq_len = set()
 for abbrv in abbrv_seq:
     length = 0
     for c in abbrv:
         if c == '.':
             length += 1
-        abbrv_seq_len.append(length)
+    abbrv_seq_len.add(length)
+abbrv_seq_len = list(abbrv_seq_len)
 abbrv_seq_len.sort(reverse = True)
 
 
@@ -47,7 +48,7 @@ def empty_if_none(s):
 
 def process_abbrv_seq(text, seq_len):
     idx = 0
-    regex = re.compile(r'(?P<jump>(?P<step><w>\p{L}+</w><c>\\.</c>(<S/>)?)(<w>\p{L}+</w><c>\\.</c>(<S/>)?){' \
+    regex = re.compile(r'(?P<jump>(?P<step><w>\p{L}+</w><c>\.</c>(<S/>)?)(<w>\p{L}+</w><c>\.</c>(<S/>)?){' \
             + str(seq_len - 1) + r'})(?P<ctx>(</[ps]>)|(<[wc]>.))')
 
     sb = []
@@ -57,10 +58,10 @@ def process_abbrv_seq(text, seq_len):
             break
         sb.append(text[idx : m.start()])
         xml = empty_if_none(m.group('jump'))
-        abbrv_lower = re.sub(tag_regex, '', xml).sub(' ', '').lower()
+        abbrv_lower = re.sub(tag_regex, '', xml).replace(' ', '').lower()
         if abbrv_lower in abbrv_seq:
             idx = m.start() + len(xml)
-            xml = re.sub(abbrv_regex, '<w>$1.</w>', xml)
+            xml = re.sub(abbrv_regex, r'<w>\1.</w>', xml)
             if endofsentence_regex.search(empty_if_none(m.group('ctx'))):
                 if abbrv_lower in abbrv_seg_seq:
                     xml += '</s><s>'
@@ -151,7 +152,7 @@ def load_rules(path):
             line = line.strip()
             if not line.startswith('#') and len(line) > 0:
                 #opt = 0
-                opt = re.UNICODE
+                opt = re.UNICODE | re.VERSION1
                 if '-->' in line:
                    opt |= re.IGNORECASE 
 
@@ -164,16 +165,16 @@ def load_rules(path):
     return rules
 
 
-def tokenize(text):
-    tok_rules_1 = load_rules(res_path / 'TokRulesPart1.txt')
-    tok_rules_2 = load_rules(res_path / 'TokRulesPart2.txt')
+TOK_RULES_1 = load_rules(res_path / 'TokRulesPart1.txt')
+TOK_RULES_2 = load_rules(res_path / 'TokRulesPart2.txt')
 
-    xml =  exec_rules(text, tok_rules_1)
+def tokenize(text):
+    xml =  exec_rules(text, TOK_RULES_1)
     for seq_len in abbrv_seq_len:
         xml = process_abbrv_seq(xml, seq_len)
     xml = process_abbrv_excl(xml)
     xml = process_abbrv_other(xml)
-    xml = exec_rules(xml, tok_rules_2)
+    xml = exec_rules(xml, TOK_RULES_2)
     xml = xml.replace('<!s/>', '')
 
     return xml
