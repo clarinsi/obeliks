@@ -167,6 +167,7 @@ def load_rules(path):
 
 TOK_RULES_1 = load_rules(res_path / 'TokRulesPart1.txt')
 TOK_RULES_2 = load_rules(res_path / 'TokRulesPart2.txt')
+TOK_RULES_3 = load_rules(res_path / 'TokRulesPart3.txt')
 
 def tokenize(text):
     xml =  exec_rules(text, TOK_RULES_1)
@@ -176,6 +177,7 @@ def tokenize(text):
     xml = process_abbrv_other(xml)
     xml = exec_rules(xml, TOK_RULES_2)
     xml = xml.replace('<!s/>', '')
+    xml = exec_rules(xml, TOK_RULES_3)
 
     return xml
 

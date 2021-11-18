@@ -53,15 +53,14 @@ def preprocess_tokens(tokens):
     org_text = []
     for match in stoken_regex.finditer(tokens):
         val = match.group()
-        val = val.replace('<s>', '')
-        val = val.replace('</s>', '')
-        val = val.replace('<w>', '')
-        val = val.replace('</w>', '')
-        val = val.replace('<c>', '')
-        val = val.replace('</c>', '')
-        val = val.replace('<S/>', ' ')
-        val = val.replace(' {2,}', ' ')
-        val = re.sub(' +', ' ', val)
+        val = re.sub(r'<s>', '', val)
+        val = re.sub(r'</s>', '', val)
+        val = re.sub(r'<[cw]([\s]*|[\s]+[^>]*)>', '', val)
+        val = re.sub(r'</w>', '', val)
+        val = re.sub(r'</c>', '', val)
+        val = re.sub(r'<S/>', ' ', val)
+        val = re.sub(r' {2,}', ' ', val)
+        val = re.sub(r' +', ' ', val)
         org_text.append(val.strip())
 
     return org_text
@@ -121,7 +120,7 @@ def process_conllu(para, np, os):
 
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc])>([^<]+)</[wc]>')
+    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -141,7 +140,8 @@ def process_conllu(para, np, os):
         elif val == '<S/>':
             pass
         else:
-            val = match.group(2)
+            attribs = parse_attribs(match.group(2))
+            val = match.group(3)
             actual_val = ['']
             idx_of_token = index_of(para, val, idx, actual_val)
             if idx_of_token == -1:
@@ -149,12 +149,17 @@ def process_conllu(para, np, os):
             idx = max(idx, idx_of_token + len(actual_val[0]))
             idx_of_token += 1
             nt += 1
-            line = str(nt) + '\t{}\t_\t_\t_\t_\t_\t_\t_'.format(actual_val[0])
+
+            lemma = attribs.get('lemma', '_')
+            xpos = attribs.get('xpos', '_')
+            upos = attribs.get('upos', '_')
             if idx < len(para) and not para_concat[idx].isspace():
                 space_after = 'SpaceAfter=No'
             else:
                 space_after = '_'
-            line += '\t{}\n'.format(space_after)
+            
+            line = str(nt) + '\t{}\t_\t{}\t{}\t{}\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
+                                                        upos, xpos, space_after)
             os.write(line)
             has_output = True
 
@@ -184,8 +189,6 @@ def process_tei(para, np, os, tei_root):
     idx = 0
     ns = 1
     nt = 0
-    old_ns = 1
-    has_output = False
     for match in token_regex.finditer(tokens):
         val = match.group()
         if val == '<s>':
@@ -223,6 +226,16 @@ def process_tei(para, np, os, tei_root):
             node.attrib['{http://www.w3.org/XML/1998/namespace}id'] = id_prefix + str(np) + '.' + str(ns) + '.t' + str(nt)
             parent_node.append(node)
             parent_map[node] = parent_node
+
+
+def parse_attribs(val):
+    res = dict()
+    for token in val.split():
+        key, val = token.split('=')
+        if val[0] != '"' or val[-1] != '"':
+            raise Exception('Attrib value needs to be in double quotes.')
+        res[key] = val[1:-1]
+    return res
 
 
 def process_text(text, os, tei_root, conllu, pass_newdoc_id):

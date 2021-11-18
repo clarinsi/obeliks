@@ -49,7 +49,7 @@ cat text*.txt | obeliks
 ```python
 import obeliks
 
-text = 'Hello, world!'
+text = 'Pozdravljen, svet!'
 
 # Store results to string
 output = obeliks.run(text, conllu=True)
