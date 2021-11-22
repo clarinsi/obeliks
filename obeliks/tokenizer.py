@@ -72,7 +72,7 @@ def process_tokenize_only(para, np, os):
     tokens = tokenize(para)
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc])>([^<]+)</[wc]>')
+    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -90,7 +90,7 @@ def process_tokenize_only(para, np, os):
         elif val == '<S/>':
             pass
         else:
-            val = match.group(2)
+            val = match.group(3)
             actual_val = ['']
             idx_of_token = index_of(para, val, idx, actual_val)
             if idx_of_token == -1:
@@ -185,7 +185,7 @@ def process_tei(para, np, os, tei_root):
 
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc])>([^<]+)</[wc]>')
+    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -208,7 +208,8 @@ def process_tei(para, np, os, tei_root):
             parent_node.append(node)
             parent_map[node] = parent_node
         else:
-            val = match.group(2)
+            attribs = parse_attribs(match.group(2))
+            val = match.group(3)
             actual_val = ['']
             idx_of_token = index_of(para, val, idx, actual_val)
             if (idx_of_token == -1):
@@ -216,7 +217,7 @@ def process_tei(para, np, os, tei_root):
             idx = max(idx, idx_of_token + len(actual_val[0]))
             idx_of_token += 1
             nt += 1
-            if match.group(1) == 'c':
+            if match.group(1).startswith('c'):
                 tag_name = 'pc'
             else:
                 tag_name = 'w'
@@ -224,6 +225,17 @@ def process_tei(para, np, os, tei_root):
             node.text = actual_val[0]
             #node.set('xml:id', id_prefix + str(np) + '.' + str(ns) + '.t' + str(nt))
             node.attrib['{http://www.w3.org/XML/1998/namespace}id'] = id_prefix + str(np) + '.' + str(ns) + '.t' + str(nt)
+
+            lemma = attribs.get('lemma', None)
+            xpos = attribs.get('xpos', None)
+            upos = attribs.get('upos', None)
+            if lemma:
+                node.attrib['lemma'] = lemma
+            if xpos:
+                node.attrib['ana'] = 'mte:' + xpos
+            if upos:
+                node.attrib['msd'] = 'UposTag=' + upos
+
             parent_node.append(node)
             parent_map[node] = parent_node
 
