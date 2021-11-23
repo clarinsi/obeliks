@@ -243,7 +243,7 @@ def process_tei(para, np, os, tei_root):
 def parse_attribs(val):
     res = dict()
     for token in val.split():
-        key, val = token.split('=')
+        key, val = token.split('=', 1)
         if val[0] != '"' or val[-1] != '"':
             raise Exception('Attrib value needs to be in double quotes.')
         res[key] = val[1:-1]
