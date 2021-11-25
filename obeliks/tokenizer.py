@@ -158,7 +158,7 @@ def process_conllu(para, np, os):
             else:
                 space_after = '_'
             
-            line = str(nt) + '\t{}\t_\t{}\t{}\t{}\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
+            line = str(nt) + '\t{}\t{}\t{}\t{}\t_\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
                                                         upos, xpos, space_after)
             os.write(line)
             has_output = True
