@@ -6,11 +6,6 @@ from io import StringIO
 from . rules import tokenize
 
 
-amp_pattern = re.compile(r'&(amp;)?')
-lt_pattern = re.compile(r'<|(&lt;)')
-gt_pattern = re.compile(r'>|(&gt;)')
-
-
 def create_tei_tree():
     root = ET.Element('TEI')
     root.set('xmlns', 'http://www.tei-c.org/ns/1.0')
@@ -22,23 +17,9 @@ def create_tei_tree():
 
 
 def index_of(string, substring, from_idx, val):
-    val[0] = ''
-    pattern = None
-    if substring == '&amp;':
-        pattern = amp_pattern
-    elif substring == '&lt;':
-        pattern = lt_pattern
-    elif substring == '&gt;':
-        pattern = gt_pattern
-   
-    if pattern:
-        for match in pattern.finditer(string):
-            if match.start() < from_idx:
-                continue
-            elif match.start() >= from_idx:
-                val[0] = match.group()
-                return match.start()
-        return -1
+    substring = re.sub(r'&amp;', '&', substring) 
+    substring = re.sub(r'&lt;', '<', substring) 
+    substring = re.sub(r'&gt;', '>', substring) 
     val[0] = substring
     return string.find(substring, from_idx)
 
@@ -150,7 +131,7 @@ def process_conllu(para, np, os):
             idx_of_token += 1
             nt += 1
 
-            lemma = attribs.get('lemma', '_')
+            lemma = unescape_xml_chars(attribs.get('lemma', '_'))
             xpos = attribs.get('xpos', '_')
             upos = attribs.get('upos', '_')
             if idx < len(para) and not para_concat[idx].isspace():
