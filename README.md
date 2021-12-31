@@ -60,6 +60,9 @@ obeliks.run(text, out_file='tei.txt', tei=True)
 # Write to stdout
 obeliks.run(text, to_stdout=True, conllu=True)
 
+# Return object
+object = obeliks.run(text, object_output=True)
+
 # Read input from file(s)
 output = obeliks.run(in_file='in.txt', conllu=True)
 output = obeliks.run(in_files=['in1.txt', 'in2.txt'], tei=True)

@@ -5,6 +5,7 @@ from io import StringIO
 
 from . rules import tokenize
 
+token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
 
 def create_tei_tree():
     root = ET.Element('TEI')
@@ -53,7 +54,6 @@ def process_tokenize_only(para, np, os):
     tokens = tokenize(para)
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -88,8 +88,7 @@ def process_tokenize_only(para, np, os):
         os.write('\n')
 
 
-
-def process_conllu(para, np, os):
+def process_conllu(para, np, os, object_output=False):
     if para.startswith(u"\uFEFF"):
         para = para[1:]
 
@@ -97,11 +96,15 @@ def process_conllu(para, np, os):
 
     tokens = tokenize(para)
 
-    os.write('# newpar id = {}\n'.format(np))
+    if object_output:
+        metadata = '# newpar id = {}\n'.format(np)
+        doc = []
+        doc_sent = []
+    else:
+        os.write('# newpar id = {}\n'.format(np))
 
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -112,11 +115,22 @@ def process_conllu(para, np, os):
         if val == '<s>':
             nt = 0
             if ns != old_ns:
-                os.write('\n')
+                if object_output:
+                    metadata += '\n'
+                else:
+                    os.write('\n')
                 old_ns = ns
-            os.write('# sent_id = {}.{}\n'.format(np, ns))
-            os.write('# text = {}\n'.format(unescape_xml_chars(org_text[ns - 1])))
+            if object_output:
+                metadata += '# sent_id = {}.{}\n'.format(np, ns)
+                metadata += '# text = {}\n'.format(unescape_xml_chars(org_text[ns - 1]))
+            else:
+                os.write('# sent_id = {}.{}\n'.format(np, ns))
+                os.write('# text = {}\n'.format(unescape_xml_chars(org_text[ns - 1])))
         elif val == '</s>':
+            if object_output:
+                doc.append({'sentence': doc_sent, 'metadata': metadata})
+                doc_sent = []
+            metadata = ''
             ns += 1
         elif val == '<S/>':
             pass
@@ -138,14 +152,22 @@ def process_conllu(para, np, os):
                 space_after = 'SpaceAfter=No'
             else:
                 space_after = '_'
-            
-            line = str(nt) + '\t{}\t{}\t{}\t{}\t_\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
-                                                        upos, xpos, space_after)
-            os.write(line)
+
+            if object_output:
+                tok = {'id': tuple([nt]), 'text': actual_val[0], 'lemma': lemma, 'xpos': xpos, 'upos': upos, 'misc': space_after}
+                doc_sent.append(tok)
+            else:
+                line = str(nt) + '\t{}\t{}\t{}\t{}\t_\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
+                                                            upos, xpos, space_after)
+                os.write(line)
             has_output = True
 
-    if has_output:
+    if has_output and not object_output:
         os.write('\n')
+
+    if object_output:
+        return doc
+    return
 
 
 def process_tei(para, np, os, tei_root):
@@ -166,7 +188,6 @@ def process_tei(para, np, os, tei_root):
 
     org_text = preprocess_tokens(tokens)
 
-    token_regex = re.compile(r'<S/>|</?s>|<([wc]([\s]*|[\s]+[^>]*))>([^<]+)</[wc]>')
     idx = 0
     ns = 1
     nt = 0
@@ -231,8 +252,10 @@ def parse_attribs(val):
     return res
 
 
-def process_text(text, os, tei_root, conllu, pass_newdoc_id):
+def process_text(text, os, tei_root, conllu, pass_newdoc_id, object_output=False):
     np = 0
+    if object_output:
+        document = []
     for line in text:
         if line.isspace() or line == '':
             continue
@@ -242,12 +265,21 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
         line = normalize(line)
 
         if conllu:
+            if object_output:
+                pre_metadata = ''
             if pass_newdoc_id and line.startswith('# newdoc id = '):
                 np = 0
-                os.write(line)
-                os.write('\n')
+                if object_output:
+                    pre_metadata += line + '\n'
+                else:
+                    os.write(line)
+                    os.write('\n')
             np += 1
-            process_conllu(line, np, os)
+            out = process_conllu(line, np, os, object_output=object_output)
+            if object_output:
+                if pre_metadata and len(out) > 0:
+                    out[0]['metadata'] = pre_metadata + out[0]['metadata']
+                document.append(out)
         elif tei_root is not None:
             np += 1
             process_tei(line, np, os, tei_root)
@@ -255,12 +287,16 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id):
             np += 1
             process_tokenize_only(line, np, os)
 
+    if object_output:
+        return document
+    return None
+
 def normalize(text):
     text = text.replace('\xad', '-')   # Soft hyphens
     return text
 
 
-def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, tei=False, conllu=False, pass_newdoc_id=False):
+def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, tei=False, conllu=False, pass_newdoc_id=False, object_output=False):
     """
     Run Obeliks on specified input.
 
@@ -281,7 +317,11 @@ def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, 
                         selected.
     """
     os = StringIO()
-    if to_stdout:
+    if object_output:
+        os = {}
+        conllu = True
+        tei = False
+    elif to_stdout:
         os = sys.stdout
     elif out_file is not None:
         os = open(out_file, 'w', encoding='utf-8')
@@ -301,21 +341,21 @@ def run(text=None, in_file=None, in_files=None, out_file=None, to_stdout=False, 
 
     if tei:
         tei_tree = create_tei_tree()
-        process_text(text, os, tei_tree.getroot(), False, False)
+        out = process_text(text, os, tei_tree.getroot(), False, False)
         if isinstance(os, StringIO):
             return ET.tostring(tei_tree, encoding='utf8', method='xml')
         else:
             tei_tree.write(os.buffer, encoding='utf-8', xml_declaration=True, pretty_print=True)
     else:
-        process_text(text, os, None, conllu, pass_newdoc_id)
+        out = process_text(text, os, None, conllu, pass_newdoc_id, object_output=object_output)
     
     if isinstance(os, StringIO):
         contents = os.getvalue()
         os.close()
         return contents
 
-    if os is not sys.stdout:
+    if not object_output and os is not sys.stdout:
         os.close()
 
-    return None
+    return out
 
