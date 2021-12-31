@@ -115,9 +115,7 @@ def process_conllu(para, np, os, object_output=False):
         if val == '<s>':
             nt = 0
             if ns != old_ns:
-                if object_output:
-                    metadata += '\n'
-                else:
+                if not object_output:
                     os.write('\n')
                 old_ns = ns
             if object_output:
