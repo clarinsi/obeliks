@@ -242,7 +242,7 @@ def process_tei(para, np, os, tei_root):
 
 def parse_attribs(val):
     res = dict()
-    for token in val.split():
+    for token in re.findall(r'\w+=\"[^\"]*\"', val):
         key, val = token.split('=', 1)
         if val[0] != '"' or val[-1] != '"':
             raise Exception('Attrib value needs to be in double quotes.')
@@ -288,6 +288,7 @@ def process_text(text, os, tei_root, conllu, pass_newdoc_id, object_output=False
     if object_output:
         return document
     return None
+
 
 def normalize(text):
     text = text.replace('\xad', '-')   # Soft hyphens

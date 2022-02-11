@@ -42,6 +42,9 @@ $ ==> </p>
 
 (<w>\d+</w><c>[.,:]</c>)+<w>\d+\p{L}*</w> ==> <w>$txt</w>
 
+# Throw out control characters
+<c>[\u0000-\u001F\u007F\u0080-\u009F]</c> ==> 
+
 #
 # End of Part 1
 #
