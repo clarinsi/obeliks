@@ -152,7 +152,8 @@ def process_conllu(para, np, os, object_output=False):
                 space_after = '_'
 
             if object_output:
-                tok = {'id': tuple([nt]), 'text': actual_val[0], 'lemma': lemma, 'xpos': xpos, 'upos': upos, 'misc': space_after}
+                tok = {'id': tuple([nt]), 'text': actual_val[0], 'lemma': lemma, 'xpos': xpos, 'upos': upos,
+                       'misc': space_after, 'start_char': idx - len(actual_val[0]), 'end_char': idx}
                 doc_sent.append(tok)
             else:
                 line = str(nt) + '\t{}\t{}\t{}\t{}\t_\t_\t_\t_\t{}\n'.format(actual_val[0], lemma,
