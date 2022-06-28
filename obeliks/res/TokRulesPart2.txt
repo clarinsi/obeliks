@@ -32,10 +32,6 @@
 # Brioni rule #1.7
 <c>([.?!…])</c><S/><w>([0-9]) ==> <c>\1</c><S/></s><s><w>\2
 
-# Fix letter + dot errors		
-<w>(\p{Ll})\.</w><S/><w>(\p{Lu}) ==> <w>\1</w><c>.</c><S/></s><s><w>\2
-
-#
 # *** Second Brioni meeting rules ***
 #
 
