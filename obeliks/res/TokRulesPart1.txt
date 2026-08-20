@@ -1,3 +1,9 @@
+# Obeliks tokenisation rules - Part 1: pre-processing.
+#
+# One rule per line: <search regex> == > <replacement>.
+# Lines starting with '#' are comments; a separator of '-->' (instead of '==>')
+# enables case-insensitive matching (see the E-mail rule below).
+
 # XML/HTML entities
 \< ==> &lt;
 \> ==> &gt;
@@ -26,7 +32,7 @@ $ ==> </p>
 # TLD: <w>[\p{L}]{2,6}</w>
 (((<w>[A-Za-z0-9]+</w>)|(<c>[_-]</c>))+<c>\.</c>)*((<w>[A-Za-z0-9]+</w>)|(<c>[_-]</c>))+<c>@</c>(((<w>[A-Za-z0-9]+</w>)|(<c>[_-]</c>))+<c>\.</c>)*((<w>[A-Za-z0-9]+</w>)|(<c>[_-]</c>))+<c>\.</c><w>[A-Za-z]{2,6}</w> --> <w>$txt</w>
 
-# URL 
+# URL
 #(<w>((ftp)|(https?))</w><c>:</c><c>/</c><c>/</c>)?(((<w>[0-9\p{L}]+</w>)|(<c>[~_!*'-]</c>))+<c>[\.-]</c>)*<w>([0-9\p{L}][0-9\p{L}-]{0,61})?[0-9\p{L}]</w><c>\.</c><w>[\p{L}]{2,6}</w>(<c>/</c>((<w>[0-9\p{L}]+</w>)|(<c>[~_!*'().;?:@=+$,%#-]</c>)|(<c>&</c>))*((<w>[0-9\p{L}]+</w>)|(<c>[~_*'@=+$%#-]</c>)|(<c>&</c>)))*(<c>/</c>)? --> <w>$txt</w>
 (<w>((ftp)|(https?))</w><c>:</c><c>/</c><c>/</c>)?(((<w>[0-9A-Za-z]+</w>)|(<c>[~_!*'-]</c>))+<c>[\.-]</c>)*<w>([0-9A-Za-z][0-9A-Za-z-]{0,61})?[0-9A-Za-z]</w><c>\.</c><w>[A-Za-z]{2,6}</w>(<c>/</c>((<w>[0-9A-Za-z]+</w>)|(<c>[~_!*'().;?:@=+$,%#-]</c>)|(<c>&</c>))*((<w>[0-9A-Za-z]+</w>)|(<c>[~_*'@=+$%#-]</c>)|(<c>&</c>)))*(<c>/</c>)? --> <w>$txt</w>
 

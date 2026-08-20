@@ -1,4 +1,4 @@
-### Attribute tagging for CoNLL-U and TEI output formats:
+# Attribute tagging for CoNLL-U and TEI output formats:
 
 # Hashtags
 <c>\u0023</c><w>([^<]+)</w> ==> <w lemma="\u0023\1" xpos="Xh" upos="SYM">\u0023\1</w>
